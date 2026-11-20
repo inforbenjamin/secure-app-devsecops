@@ -58,11 +58,22 @@ pipeline {
                 '''
             }
         }
+
+        stage('Security Test - OWASP ZAP') {
+            steps {
+                sh '''
+                    docker rm -f zap || true
+                    docker run --name zap --network devsecops ghcr.io/zaproxy/zaproxy:stable sh -c "mkdir -p /zap/wrk && zap-full-scan.py -t 'http://app:5000/hello?name=test' -m 2 -r zap-report.html -I" || true
+                    docker cp zap:/zap/wrk/zap-report.html ./zap-report.html || true
+                    docker rm -f zap || true
+                '''
+            }
+        }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: 'pip-audit-report.txt', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'zap-report.html, pip-audit-report.txt', allowEmptyArchive: true
         }
         success { echo 'Pipeline completado correctamente.' }
         failure { echo 'El pipeline fallo: revisar el log de la etapa en rojo.' }

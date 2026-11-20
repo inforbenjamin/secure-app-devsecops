@@ -28,6 +28,26 @@ pipeline {
             }
         }
 
+        stage('Analyze - SonarQube') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    script {
+                        def scannerHome = tool 'SonarScanner'
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
+            }
+        }
+
+        stage('Dependencias - pip-audit') {
+            steps {
+                sh '''
+                    pip-audit -r requirements.txt > pip-audit-report.txt 2>&1 || true
+                    cat pip-audit-report.txt
+                '''
+            }
+        }
+
         stage('Deploy - Despliegue') {
             steps {
                 sh '''
@@ -41,6 +61,9 @@ pipeline {
     }
 
     post {
+        always {
+            archiveArtifacts artifacts: 'pip-audit-report.txt', allowEmptyArchive: true
+        }
         success { echo 'Pipeline completado correctamente.' }
         failure { echo 'El pipeline fallo: revisar el log de la etapa en rojo.' }
     }

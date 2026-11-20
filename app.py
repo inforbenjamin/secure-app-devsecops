@@ -26,7 +26,7 @@ NAME_RE = re.compile(r"^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9 _.\-]{1,50}$")
 
 @app.after_request
 def add_security_headers(resp):
-    resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    resp.headers["Content-Security-Policy"] = "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
     resp.headers["X-Content-Type-Options"] = "nosniff"
     resp.headers["X-Frame-Options"] = "DENY"
     resp.headers["Referrer-Policy"] = "no-referrer"
